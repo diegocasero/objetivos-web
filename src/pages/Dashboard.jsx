@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import { useObjectives } from "../hooks/useObjectives";
 import ProgressChart from "../components/ProgressChart";
+import LogoutButton from "../components/LogoutButton";
 
 const getProgress = (milestones) =>
   milestones && milestones.length > 0
@@ -117,119 +118,184 @@ const Dashboard = () => {
 
   return (
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24, background: "#fff", borderRadius: 12, boxShadow: "0 2px 12px #0001" }}>
-      <h2 style={{ textAlign: "center", marginBottom: 24 }}>Mis Objetivos</h2>
-      <form onSubmit={handleAddObjective} style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
-        <input
-          type="text"
-          placeholder="Nuevo objetivo"
-          value={newObjective}
-          onChange={(e) => setNewObjective(e.target.value)}
-          style={{
-            padding: "8px 12px",
-            borderRadius: 6,
-            border: "1px solid #ccc",
-            fontSize: 16,
-          }}
-        />
-        <div style={{ display: "flex", gap: 8 }}>
+    <LogoutButton />
+      <div style={{ maxWidth: 600, margin: "40px auto", padding: 24, background: "#fff", borderRadius: 12, boxShadow: "0 2px 12px #0001" }}>
+        <h2 style={{ textAlign: "center", marginBottom: 24 }}>Mis Objetivos</h2>
+        <form onSubmit={handleAddObjective} style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
           <input
             type="text"
-            placeholder="Añadir hito"
-            value={newMilestone}
-            onChange={(e) => setNewMilestone(e.target.value)}
+            placeholder="Nuevo objetivo"
+            value={newObjective}
+            onChange={(e) => setNewObjective(e.target.value)}
             style={{
-              flex: 1,
               padding: "8px 12px",
               borderRadius: 6,
               border: "1px solid #ccc",
               fontSize: 16,
             }}
           />
+          <div style={{ display: "flex", gap: 8 }}>
+            <input
+              type="text"
+              placeholder="Añadir hito"
+              value={newMilestone}
+              onChange={(e) => setNewMilestone(e.target.value)}
+              style={{
+                flex: 1,
+                padding: "8px 12px",
+                borderRadius: 6,
+                border: "1px solid #ccc",
+                fontSize: 16,
+              }}
+            />
+            <button
+              onClick={handleAddMilestone}
+              style={{
+                padding: "8px 16px",
+                borderRadius: 6,
+                border: "none",
+                background: "#43a047",
+                color: "#fff",
+                fontWeight: "bold",
+                cursor: "pointer",
+              }}
+              type="button"
+            >
+              Añadir hito
+            </button>
+          </div>
+          <ul>
+            {milestones.map((m, idx) => (
+              <li key={idx} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {m}
+                <button type="button" onClick={() => handleRemoveMilestone(idx)} style={{ color: "#e53935", background: "none", border: "none", cursor: "pointer" }}>✕</button>
+              </li>
+            ))}
+          </ul>
           <button
-            onClick={handleAddMilestone}
+            type="submit"
             style={{
               padding: "8px 16px",
               borderRadius: 6,
               border: "none",
-              background: "#43a047",
+              background: "#1976d2",
               color: "#fff",
               fontWeight: "bold",
               cursor: "pointer",
             }}
-            type="button"
           >
-            Añadir hito
+            Añadir objetivo
           </button>
-        </div>
-        <ul>
-          {milestones.map((m, idx) => (
-            <li key={idx} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              {m}
-              <button type="button" onClick={() => handleRemoveMilestone(idx)} style={{ color: "#e53935", background: "none", border: "none", cursor: "pointer" }}>✕</button>
-            </li>
-          ))}
-        </ul>
-        <button
-          type="submit"
-          style={{
-            padding: "8px 16px",
-            borderRadius: 6,
-            border: "none",
-            background: "#1976d2",
-            color: "#fff",
-            fontWeight: "bold",
-            cursor: "pointer",
-          }}
-        >
-          Añadir objetivo
-        </button>
-      </form>
-      <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 32 }}>
-        {objectives.length === 0 && (
-          <div style={{ textAlign: "center", color: "#888" }}>No tienes objetivos aún.</div>
-        )}
-        {objectives.map((obj, objIdx) =>
-          editingId === obj.id ? (
-            <div key={obj.id} style={{ background: "#f5f5f5", borderRadius: 8, padding: 16 }}>
-              <form onSubmit={handleUpdateObjective} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <input
-                  type="text"
-                  value={editingText}
-                  onChange={(e) => setEditingText(e.target.value)}
-                  style={{
-                    padding: "6px 10px",
+        </form>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 32 }}>
+          {objectives.length === 0 && (
+            <div style={{ textAlign: "center", color: "#888" }}>No tienes objetivos aún.</div>
+          )}
+          {objectives.map((obj, objIdx) =>
+            editingId === obj.id ? (
+              <div key={obj.id} style={{ background: "#f5f5f5", borderRadius: 8, padding: 16 }}>
+                <form onSubmit={handleUpdateObjective} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <input
+                    type="text"
+                    value={editingText}
+                    onChange={(e) => setEditingText(e.target.value)}
+                    style={{
+                      padding: "6px 10px",
+                      borderRadius: 4,
+                      border: "1px solid #bbb",
+                      fontSize: 15,
+                    }}
+                  />
+                  <div>
+                    <strong>Hitos:</strong>
+                    <ul>
+                      {editingMilestones.map((m, idx) => (
+                        <li key={idx} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <input
+                            type="text"
+                            value={m.title}
+                            onChange={e => handleEditMilestoneTitle(idx, e.target.value)}
+                            style={{
+                              padding: "6px 10px",
+                              borderRadius: 4,
+                              border: "1px solid #bbb",
+                              fontSize: 15,
+                            }}
+                          />
+                          <button type="button" onClick={() => handleRemoveEditMilestone(idx)} style={{ color: "#e53935", background: "none", border: "none", cursor: "pointer" }}>✕</button>
+                        </li>
+                      ))}
+                    </ul>
+                    <button type="button" onClick={handleAddEditMilestone} style={{ background: "#43a047", color: "#fff", border: "none", borderRadius: 4, padding: "4px 10px", fontWeight: "bold", cursor: "pointer" }}>Añadir hito</button>
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button
+                      type="submit"
+                      style={{
+                        background: "#43a047",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 4,
+                        padding: "6px 14px",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      style={{
+                        background: "#e53935",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 4,
+                        padding: "6px 14px",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              </div>
+            ) : (
+              <div key={obj.id} style={{ background: "#f5f5f5", borderRadius: 8, padding: 16 }}>
+                <div style={{ fontWeight: "bold", fontSize: 16 }}>{obj.text}</div>
+                <div style={{ color: "#1976d2", fontWeight: "bold", fontSize: 15 }}>
+                  {getProgress(obj.milestones).toFixed(0)}% completado
+                </div>
+                <div style={{ background: "#e3eafc", borderRadius: 4, height: 8, marginTop: 6, width: 180 }}>
+                  <div style={{
+                    width: `${getProgress(obj.milestones)}%`,
+                    background: "#1976d2",
+                    height: "100%",
                     borderRadius: 4,
-                    border: "1px solid #bbb",
-                    fontSize: 15,
-                  }}
-                />
-                <div>
+                    transition: "width 0.3s"
+                  }} />
+                </div>
+                <div style={{ marginTop: 10 }}>
                   <strong>Hitos:</strong>
                   <ul>
-                    {editingMilestones.map((m, idx) => (
+                    {obj.milestones && obj.milestones.map((m, idx) => (
                       <li key={idx} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <input
-                          type="text"
-                          value={m.title}
-                          onChange={e => handleEditMilestoneTitle(idx, e.target.value)}
-                          style={{
-                            padding: "6px 10px",
-                            borderRadius: 4,
-                            border: "1px solid #bbb",
-                            fontSize: 15,
-                          }}
+                          type="checkbox"
+                          checked={m.completed}
+                          onChange={() => handleToggleMilestone(objIdx, idx)}
                         />
-                        <button type="button" onClick={() => handleRemoveEditMilestone(idx)} style={{ color: "#e53935", background: "none", border: "none", cursor: "pointer" }}>✕</button>
+                        {m.title}
                       </li>
                     ))}
                   </ul>
-                  <button type="button" onClick={handleAddEditMilestone} style={{ background: "#43a047", color: "#fff", border: "none", borderRadius: 4, padding: "4px 10px", fontWeight: "bold", cursor: "pointer" }}>Añadir hito</button>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
-                    type="submit"
+                    onClick={() => handleEditObjective(obj)}
                     style={{
-                      background: "#43a047",
+                      background: "#ffb300",
                       color: "#fff",
                       border: "none",
                       borderRadius: 4,
@@ -238,11 +304,10 @@ const Dashboard = () => {
                       cursor: "pointer",
                     }}
                   >
-                    Guardar
+                    Editar
                   </button>
                   <button
-                    type="button"
-                    onClick={handleCancelEdit}
+                    onClick={() => handleDeleteObjective(obj.id)}
                     style={{
                       background: "#e53935",
                       color: "#fff",
@@ -253,81 +318,20 @@ const Dashboard = () => {
                       cursor: "pointer",
                     }}
                   >
-                    Cancelar
+                    Eliminar
                   </button>
                 </div>
-              </form>
-            </div>
-          ) : (
-            <div key={obj.id} style={{ background: "#f5f5f5", borderRadius: 8, padding: 16 }}>
-              <div style={{ fontWeight: "bold", fontSize: 16 }}>{obj.text}</div>
-              <div style={{ color: "#1976d2", fontWeight: "bold", fontSize: 15 }}>
-                {getProgress(obj.milestones).toFixed(0)}% completado
               </div>
-              <div style={{ background: "#e3eafc", borderRadius: 4, height: 8, marginTop: 6, width: 180 }}>
-                <div style={{
-                  width: `${getProgress(obj.milestones)}%`,
-                  background: "#1976d2",
-                  height: "100%",
-                  borderRadius: 4,
-                  transition: "width 0.3s"
-                }} />
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <strong>Hitos:</strong>
-                <ul>
-                  {obj.milestones && obj.milestones.map((m, idx) => (
-                    <li key={idx} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <input
-                        type="checkbox"
-                        checked={m.completed}
-                        onChange={() => handleToggleMilestone(objIdx, idx)}
-                      />
-                      {m.title}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  onClick={() => handleEditObjective(obj)}
-                  style={{
-                    background: "#ffb300",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 4,
-                    padding: "6px 14px",
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                  }}
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => handleDeleteObjective(obj.id)}
-                  style={{
-                    background: "#e53935",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 4,
-                    padding: "6px 14px",
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                  }}
-                >
-                  Eliminar
-                </button>
-              </div>
-            </div>
-          )
-        )}
-      </div>
-      <div style={{ background: "#f5f5f5", borderRadius: 8, padding: 16 }}>
-        <h3 style={{ margin: 0, marginBottom: 12, color: "#1976d2" }}>Progreso general</h3>
-        <ProgressChart objectives={objectives.map(obj => ({
-          ...obj,
-          progress: getProgress(obj.milestones)
-        }))} />
+            )
+          )}
+        </div>
+        <div style={{ background: "#f5f5f5", borderRadius: 8, padding: 16 }}>
+          <h3 style={{ margin: 0, marginBottom: 12, color: "#1976d2" }}>Progreso general</h3>
+          <ProgressChart objectives={objectives.map(obj => ({
+            ...obj,
+            progress: getProgress(obj.milestones)
+          }))} />
+        </div>
       </div>
     </div>
   );
