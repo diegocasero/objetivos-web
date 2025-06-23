@@ -1,42 +1,37 @@
-import { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { auth, db } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import React from "react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList, Cell } from "recharts";
 
-export default function ProgressChart() {
-  const [data, setData] = useState([]);
+const ProgressChart = ({ objectives }) => {
+  const getProgress = (milestones) =>
+    milestones && milestones.length > 0
+      ? (milestones.filter(m => m.completed).length / milestones.length) * 100
+      : 0;
 
-  useEffect(() => {
-    const fetchChartData = async () => {
-      const uid = auth.currentUser?.uid;
-      if (!uid) return;
-
-      const snapshot = await getDocs(collection(db, 'objectives'));
-      const userObjectives = snapshot.docs
-        .map(doc => doc.data())
-        .filter(obj => obj.uid === uid);
-
-      const chartData = userObjectives.map(obj => ({
-        name: obj.text,
-        Progreso: obj.progress,
-      }));
-
-      setData(chartData);
-    };
-
-    fetchChartData();
-  }, []);
+  const data = objectives.map(obj => ({
+    name: obj.text,
+    progress: typeof obj.progress === "number"
+      ? obj.progress
+      : getProgress(obj.milestones || [])
+  }));
 
   return (
-    <div>
-      <h2 className="text-lg font-semibold mb-2">Gráfica de Progreso</h2>
-      <BarChart width={600} height={300} data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis domain={[0, 100]} />
-        <Tooltip />
-        <Bar dataKey="Progreso" fill="#3b82f6" />
+    <ResponsiveContainer width="100%" height={250}>
+      <BarChart data={data} margin={{ top: 16, right: 16, left: 0, bottom: 16 }}>
+        <XAxis dataKey="name" tick={{ fontSize: 13 }} />
+        <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`} />
+        <Tooltip formatter={v => `${v.toFixed(0)}%`} />
+        <Bar dataKey="progress">
+          {data.map((entry, index) => (
+            <Cell
+              key={`cell-${index}`}
+              fill={entry.progress >= 100 ? "#43a047" : "#1976d2"}
+            />
+          ))}
+          <LabelList dataKey="progress" position="top" formatter={v => `${v.toFixed(0)}%`} />
+        </Bar>
       </BarChart>
-    </div>
+    </ResponsiveContainer>
   );
-}
+};
+
+export default ProgressChart;
