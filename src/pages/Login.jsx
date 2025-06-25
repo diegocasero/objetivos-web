@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
+import MainContainer from "../components/MainContainer";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -28,37 +29,28 @@ const Login = () => {
   };
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "linear-gradient(120deg, #1976d2 0%, #43a047 100%)"
-    }}>
+    <MainContainer>
       <form
         onSubmit={handleSubmit}
         style={{
-          background: "#fff",
-          padding: 36,
-          borderRadius: 12,
-          boxShadow: "0 2px 16px #0002",
-          minWidth: 320,
           display: "flex",
           flexDirection: "column",
           gap: 18,
         }}
       >
-        <h2 style={{ textAlign: "center", color: "#1976d2", marginBottom: 8 }}>Iniciar Sesión</h2>
+        <h2 style={{ textAlign: "center", color: "#1976d2", marginBottom: 8, fontWeight: 800, letterSpacing: 1 }}>Iniciar Sesión</h2>
         <input
           type="email"
           placeholder="Correo electrónico"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           style={{
-            padding: "10px 14px",
-            borderRadius: 6,
-            border: "1px solid #ccc",
+            padding: "12px 16px",
+            borderRadius: 8,
+            border: "1px solid #cfd8dc",
             fontSize: 16,
+            background: "#f7fafd",
+            width: "100%",
           }}
           required
         />
@@ -68,10 +60,12 @@ const Login = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           style={{
-            padding: "10px 14px",
-            borderRadius: 6,
-            border: "1px solid #ccc",
+            padding: "12px 16px",
+            borderRadius: 8,
+            border: "1px solid #cfd8dc",
             fontSize: 16,
+            background: "#f7fafd",
+            width: "100%",
           }}
           required
         />
@@ -82,8 +76,8 @@ const Login = () => {
           type="submit"
           disabled={loading}
           style={{
-            padding: "10px 0",
-            borderRadius: 6,
+            padding: "12px 0",
+            borderRadius: 8,
             border: "none",
             background: "#1976d2",
             color: "#fff",
@@ -91,7 +85,9 @@ const Login = () => {
             fontSize: 16,
             cursor: loading ? "not-allowed" : "pointer",
             marginTop: 8,
-            opacity: loading ? 0.7 : 1
+            opacity: loading ? 0.7 : 1,
+            transition: "background 0.2s",
+            width: "100%",
           }}
         >
           {loading ? "Entrando..." : "Entrar"}
@@ -107,12 +103,13 @@ const Login = () => {
             textDecoration: "underline",
             marginTop: 8,
             fontSize: 15,
+            fontWeight: 500,
           }}
         >
           ¿No tienes cuenta? Regístrate
         </button>
       </form>
-    </div>
+    </MainContainer>
   );
 };
 
