@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth, db } from "../firebase";
+import { doc, setDoc } from "firebase/firestore";
 
-const Login = () => {
+const Register = () => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -13,16 +16,31 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (!name.trim()) {
+      setError("El nombre es obligatorio.");
+      return;
+    }
+    if (password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+    if (password !== confirm) {
+      setError("Las contraseñas no coinciden.");
+      return;
+    }
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      if (email === "admin@demo.com") {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
-      }
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName: name });
+      // Guarda el usuario en Firestore
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        name,
+        email,
+        createdAt: new Date()
+      });
+      navigate("/dashboard");
     } catch (err) {
-      setError("Credenciales incorrectas.");
+      setError("No se pudo registrar el usuario. " + (err.message || ""));
     }
     setLoading(false);
   };
@@ -42,13 +60,26 @@ const Login = () => {
           padding: 36,
           borderRadius: 12,
           boxShadow: "0 2px 16px #0002",
-          minWidth: 320,
+          minWidth: 340,
           display: "flex",
           flexDirection: "column",
           gap: 18,
         }}
       >
-        <h2 style={{ textAlign: "center", color: "#1976d2", marginBottom: 8 }}>Iniciar Sesión</h2>
+        <h2 style={{ textAlign: "center", color: "#1976d2", marginBottom: 8 }}>Registro</h2>
+        <input
+          type="text"
+          placeholder="Nombre completo"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          style={{
+            padding: "10px 14px",
+            borderRadius: 6,
+            border: "1px solid #ccc",
+            fontSize: 16,
+          }}
+          required
+        />
         <input
           type="email"
           placeholder="Correo electrónico"
@@ -64,9 +95,22 @@ const Login = () => {
         />
         <input
           type="password"
-          placeholder="Contraseña"
+          placeholder="Contraseña (mínimo 6 caracteres)"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          style={{
+            padding: "10px 14px",
+            borderRadius: 6,
+            border: "1px solid #ccc",
+            fontSize: 16,
+          }}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Confirmar contraseña"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
           style={{
             padding: "10px 14px",
             borderRadius: 6,
@@ -94,11 +138,11 @@ const Login = () => {
             opacity: loading ? 0.7 : 1
           }}
         >
-          {loading ? "Entrando..." : "Entrar"}
+          {loading ? "Registrando..." : "Registrarse"}
         </button>
         <button
           type="button"
-          onClick={() => navigate("/register")}
+          onClick={() => navigate("/login")}
           style={{
             background: "none",
             border: "none",
@@ -109,11 +153,11 @@ const Login = () => {
             fontSize: 15,
           }}
         >
-          ¿No tienes cuenta? Regístrate
+          ¿Ya tienes cuenta? Inicia sesión
         </button>
       </form>
     </div>
   );
 };
 
-export default Login;
+export default Register;
