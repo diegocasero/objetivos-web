@@ -33,7 +33,9 @@ const Register = () => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
+      // Guardar usuario en Firestore
       await setDoc(doc(db, "users", userCredential.user.uid), {
+        uid: userCredential.user.uid,
         name,
         email,
         createdAt: new Date()
