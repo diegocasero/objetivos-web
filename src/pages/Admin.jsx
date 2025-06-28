@@ -1,24 +1,39 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import { useObjectives } from "../hooks/useObjectives";
 import LogoutButton from "../components/LogoutButton";
 import MainContainer from "../components/MainContainer";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 const getProgress = (milestones) =>
   milestones && milestones.length > 0
     ? (milestones.filter(m => m.completed).length / milestones.length) * 100
     : 0;
 
+// Busca el UID de un usuario dado su correo electrónico
+const getUidByEmail = async (email) => {
+  const usersRef = collection(db, "users");
+  const q = query(usersRef, where("email", "==", email));
+  const querySnapshot = await getDocs(q);
+  if (!querySnapshot.empty) {
+    return querySnapshot.docs[0].id;
+  }
+  return null;
+};
+
 const Admin = () => {
+  const [newEmail, setNewEmail] = useState("");
   const [newObjective, setNewObjective] = useState("");
-  const [newUid, setNewUid] = useState("");
   const [newMilestone, setNewMilestone] = useState("");
   const [milestones, setMilestones] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editingText, setEditingText] = useState("");
   const [editingMilestones, setEditingMilestones] = useState([]);
   const [editingUid, setEditingUid] = useState("");
+  const [editingEmail, setEditingEmail] = useState("");
+  const [error, setError] = useState("");
+  const [usersMap, setUsersMap] = useState({}); // Mapa UID -> email
   const navigate = useNavigate();
 
   const { objectives, fetchObjectives, addObjective, updateObjective, deleteObjective } = useObjectives();
@@ -29,6 +44,17 @@ const Admin = () => {
       return;
     }
     fetchObjectives();
+    // Obtener todos los usuarios y crear el mapa UID->email
+    const fetchUsers = async () => {
+      const usersRef = collection(db, "users");
+      const snapshot = await getDocs(usersRef);
+      const map = {};
+      snapshot.forEach(doc => {
+        map[doc.id] = doc.data().email;
+      });
+      setUsersMap(map);
+    };
+    fetchUsers();
     // eslint-disable-next-line
   }, []);
 
@@ -39,17 +65,23 @@ const Admin = () => {
     return acc;
   }, {});
 
-  // Añadir objetivo con hitos
+  // Añadir objetivo con hitos usando correo
   const handleAddObjective = async (e) => {
     e.preventDefault();
-    if (!newObjective.trim() || !newUid.trim()) return;
+    setError("");
+    if (!newObjective.trim() || !newEmail.trim()) return;
+    const uid = await getUidByEmail(newEmail);
+    if (!uid) {
+      setError("No se encontró ningún usuario con ese correo.");
+      return;
+    }
     await addObjective({
-      uid: newUid,
+      uid,
       text: newObjective,
       milestones: milestones.map(title => ({ title, completed: false })),
     });
     setNewObjective("");
-    setNewUid("");
+    setNewEmail("");
     setMilestones([]);
   };
 
@@ -73,25 +105,37 @@ const Admin = () => {
   };
 
   // Editar objetivo e hitos
-  const handleEditObjective = (obj) => {
+  const handleEditObjective = async (obj) => {
     setEditingId(obj.id);
     setEditingText(obj.text);
     setEditingMilestones(obj.milestones ? [...obj.milestones] : []);
     setEditingUid(obj.uid);
+    // Buscar el email correspondiente al UID
+    setEditingEmail(usersMap[obj.uid] || "");
   };
 
-  // Guardar edición de objetivo
+  // Guardar edición de objetivo usando correo
   const handleUpdateObjective = async (e) => {
     e.preventDefault();
+    setError("");
+    let uid = editingUid;
+    if (editingEmail && editingEmail !== "") {
+      uid = await getUidByEmail(editingEmail);
+      if (!uid) {
+        setError("No se encontró ningún usuario con ese correo.");
+        return;
+      }
+    }
     await updateObjective(editingId, {
       text: editingText,
       milestones: editingMilestones,
-      uid: editingUid,
+      uid,
     });
     setEditingId(null);
     setEditingText("");
     setEditingMilestones([]);
     setEditingUid("");
+    setEditingEmail("");
   };
 
   // Añadir hito en edición
@@ -129,23 +173,22 @@ const Admin = () => {
     setEditingText("");
     setEditingMilestones([]);
     setEditingUid("");
+    setEditingEmail("");
   };
 
   return (
     <>
       {/* Botón fijo arriba a la derecha, fuera del cuadrado */}
-      <div
-        style={{
-          position: "fixed",
-          top: 16,
-          right: 16,
-          zIndex: 1000,
-          maxWidth: "calc(100vw - 32px)",
-          width: "auto",
-          display: "flex",
-          justifyContent: "flex-end",
-        }}
-      >
+      <div style={{
+        position: "fixed",
+        top: 16,
+        right: 16,
+        zIndex: 1000,
+        maxWidth: "calc(100vw - 32px)",
+        width: "auto",
+        display: "flex",
+        justifyContent: "flex-end",
+      }}>
         <LogoutButton />
       </div>
       <MainContainer maxWidth={900}>
@@ -153,10 +196,10 @@ const Admin = () => {
         {/* Formulario para añadir objetivo y hitos a cualquier usuario */}
         <form onSubmit={handleAddObjective} style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
           <input
-            type="text"
-            placeholder="UID de usuario"
-            value={newUid}
-            onChange={(e) => setNewUid(e.target.value)}
+            type="email"
+            placeholder="Correo del usuario"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
             style={{
               padding: "12px 16px",
               borderRadius: 8,
@@ -165,6 +208,7 @@ const Admin = () => {
               background: "#f7fafd",
               width: "100%",
             }}
+            required
           />
           <input
             type="text"
@@ -179,6 +223,7 @@ const Admin = () => {
               background: "#f7fafd",
               width: "100%",
             }}
+            required
           />
           <div style={{ display: "flex", gap: 8 }}>
             <input
@@ -219,6 +264,7 @@ const Admin = () => {
               </li>
             ))}
           </ul>
+          {error && <div style={{ color: "#e53935", fontWeight: "bold" }}>{error}</div>}
           <button
             type="submit"
             style={{
@@ -242,7 +288,11 @@ const Admin = () => {
         )}
         {Object.entries(grouped).map(([uid, objs]) => (
           <div key={uid} style={{ marginBottom: 32 }}>
-            <h3 style={{ color: "#43a047", marginBottom: 12, fontWeight: 700 }}>Usuario: <span style={{ fontWeight: "normal" }}>{uid}</span></h3>
+            <h3 style={{ color: "#43a047", marginBottom: 12, fontWeight: 700 }}>
+              Usuario: <span style={{ fontWeight: "normal" }}>
+                {usersMap[uid] || uid}
+              </span>
+            </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {objs.map((obj) =>
                 editingId === obj.id ? (
@@ -260,15 +310,16 @@ const Admin = () => {
                         }}
                       />
                       <input
-                        type="text"
-                        value={editingUid}
-                        onChange={(e) => setEditingUid(e.target.value)}
+                        type="email"
+                        value={editingEmail}
+                        onChange={(e) => setEditingEmail(e.target.value)}
                         style={{
                           padding: "10px 14px",
                           borderRadius: 6,
                           border: "1px solid #bbb",
                           fontSize: 15,
                         }}
+                        placeholder="Correo del usuario"
                       />
                       <div>
                         <strong>Hitos:</strong>
