@@ -39,7 +39,7 @@ const Admin = () => {
   const { objectives, fetchObjectives, addObjective, updateObjective, deleteObjective } = useObjectives();
 
   useEffect(() => {
-    if (!auth.currentUser || auth.currentUser.email !== "admin@demo.com") {
+    if (!auth.currentUser || auth.currentUser.email !== "admin@objectives.com") {
       navigate("/login");
       return;
     }

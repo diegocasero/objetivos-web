@@ -17,7 +17,7 @@ const Login = () => {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      if (email === "admin@demo.com") {
+      if (email === "admin@objectives.com") {
         navigate("/admin");
       } else {
         navigate("/dashboard");
