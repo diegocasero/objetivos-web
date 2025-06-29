@@ -4,23 +4,12 @@ import { auth, db } from "../firebase";
 import { useObjectives } from "../hooks/useObjectives";
 import LogoutButton from "../components/LogoutButton";
 import MainContainer from "../components/MainContainer";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { getUidByEmail, getUsersMap } from "../services/userService";
 
 const getProgress = (milestones) =>
   milestones && milestones.length > 0
     ? (milestones.filter(m => m.completed).length / milestones.length) * 100
     : 0;
-
-// Busca el UID de un usuario dado su correo electrónico
-const getUidByEmail = async (email) => {
-  const usersRef = collection(db, "users");
-  const q = query(usersRef, where("email", "==", email));
-  const querySnapshot = await getDocs(q);
-  if (!querySnapshot.empty) {
-    return querySnapshot.docs[0].id;
-  }
-  return null;
-};
 
 const Admin = () => {
   const [newEmail, setNewEmail] = useState("");
@@ -46,16 +35,10 @@ const Admin = () => {
     fetchObjectives();
     // Obtener todos los usuarios y crear el mapa UID->email
     const fetchUsers = async () => {
-      const usersRef = collection(db, "users");
-      const snapshot = await getDocs(usersRef);
-      const map = {};
-      snapshot.forEach(doc => {
-        map[doc.id] = doc.data().email;
-      });
+      const map = await getUsersMap();
       setUsersMap(map);
     };
     fetchUsers();
-    // eslint-disable-next-line
   }, []);
 
   // Agrupar objetivos por usuario
