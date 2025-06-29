@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import { useObjectives } from "../hooks/useObjectives";
 import ProgressChart from "../components/ProgressChart";
-import ObjectivesBarChart from "../components/ObjectivesBarChart";
+import ObjectivesDonutChart from "../components/ObjectivesDonutChart";
 import LogoutButton from "../components/LogoutButton";
 import MainContainer from "../components/MainContainer";
 import DashboardSettings from "../components/DashboardSettings";
@@ -371,7 +371,7 @@ const Dashboard = () => {
         {widgets.includes("chart") && (
           <div style={{ background: "#f5f5f5", borderRadius: 8, padding: 16, marginBottom: 24 }}>
             <h3 style={{ margin: 0, marginBottom: 12, color: "#1976d2" }}>Gráfico de objetivos</h3>
-            <ObjectivesBarChart objectives={objectives} />
+            <ObjectivesDonutChart objectives={objectives} />
           </div>
         )}
       </MainContainer>
