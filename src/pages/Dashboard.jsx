@@ -7,6 +7,7 @@ import ObjectivesDonutChart from "../components/ObjectivesDonutChart";
 import LogoutButton from "../components/LogoutButton";
 import MainContainer from "../components/MainContainer";
 import DashboardSettings from "../components/DashboardSettings";
+import ThemeToggle from "../components/ThemeToggle";
 
 const getProgress = (milestones) =>
   milestones && milestones.length > 0
@@ -132,8 +133,10 @@ const Dashboard = () => {
         width: "auto",
         display: "flex",
         justifyContent: "flex-end",
+        alignItems: "center"
       }}>
         <LogoutButton />
+        <ThemeToggle />
       </div>
       <MainContainer maxWidth={700}>
         <DashboardSettings onChange={setWidgets} />

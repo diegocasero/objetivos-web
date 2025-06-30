@@ -1,9 +1,17 @@
+body[data-theme="light"] {
+  background: linear-gradient(120deg, #1976d2 0%, #42a5f5 100%);
+  color: #222;
+}
+
+body[data-theme="dark"] {
+  background: linear-gradient(120deg, #232526 0%, #414345 100%);
+  color: #222;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-  background: linear-gradient(120deg, #1976d2 0%, #42a5f5 100%);
   min-height: 100vh;
-  color: #222;
 }
 
 * {
