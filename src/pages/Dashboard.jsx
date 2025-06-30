@@ -161,7 +161,7 @@ const Dashboard = () => {
       }}>
         <LogoutButton />
       </div>
-      <MainContainer maxWidth={700}>
+      <MainContainer maxWidth={900}>
         <DashboardSettings onChange={setWidgets} />
         <h2 style={{ textAlign: "center", marginBottom: 24, fontWeight: 800, color: "#1976d2" }}>Mis Objetivos</h2>
         {widgets.includes("progress") && (
