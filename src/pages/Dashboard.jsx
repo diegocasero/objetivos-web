@@ -126,7 +126,6 @@ const Dashboard = () => {
     setEditingId(null);
     setEditingText("");
     setEditingMilestones([]);
-    setEditError("");
   };
 
   // Añadir comentario a un objetivo
