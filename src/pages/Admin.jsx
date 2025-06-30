@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../firebase";
+import { auth } from "../firebase";
 import { useObjectives } from "../hooks/useObjectives";
 import LogoutButton from "../components/LogoutButton";
 import MainContainer from "../components/MainContainer";
 import { getUidByEmail, getUsersMap } from "../services/userService";
+import { Timestamp } from "firebase/firestore";
 
 const getProgress = (milestones) =>
   milestones && milestones.length > 0
@@ -22,10 +23,19 @@ const Admin = () => {
   const [editingUid, setEditingUid] = useState("");
   const [editingEmail, setEditingEmail] = useState("");
   const [error, setError] = useState("");
-  const [usersMap, setUsersMap] = useState({}); // Mapa UID -> email
+  const [usersMap, setUsersMap] = useState({});
+  const [commentText, setCommentText] = useState({});
   const navigate = useNavigate();
 
-  const { objectives, fetchObjectives, addObjective, updateObjective, deleteObjective } = useObjectives();
+  const {
+    objectives,
+    fetchObjectives,
+    addObjective,
+    updateObjective,
+    deleteObjective,
+    addComment,
+    deleteComment,
+  } = useObjectives();
 
   useEffect(() => {
     if (!auth.currentUser || auth.currentUser.email !== "admin@objectives.com") {
@@ -33,12 +43,12 @@ const Admin = () => {
       return;
     }
     fetchObjectives();
-    // Obtener todos los usuarios y crear el mapa UID->email
     const fetchUsers = async () => {
       const map = await getUsersMap();
       setUsersMap(map);
     };
     fetchUsers();
+    // eslint-disable-next-line
   }, []);
 
   // Agrupar objetivos por usuario
@@ -97,7 +107,6 @@ const Admin = () => {
     setEditingText(obj.text);
     setEditingMilestones(obj.milestones ? [...obj.milestones] : []);
     setEditingUid(obj.uid);
-    // Buscar el email correspondiente al UID
     setEditingEmail(usersMap[obj.uid] || "");
   };
 
@@ -112,6 +121,10 @@ const Admin = () => {
         setError("No se encontró ningún usuario con ese correo.");
         return;
       }
+    }
+    if (editingMilestones.length === 0) {
+      setError("Debes añadir al menos un hito.");
+      return;
     }
     await updateObjective(editingId, {
       text: editingText,
@@ -161,6 +174,24 @@ const Admin = () => {
     setEditingMilestones([]);
     setEditingUid("");
     setEditingEmail("");
+  };
+
+  // Añadir comentario a un objetivo
+  const handleAddComment = async (objectiveId) => {
+    if (!commentText[objectiveId] || !commentText[objectiveId].trim()) return;
+    await addComment(objectiveId, {
+      user: auth.currentUser.email,
+      text: commentText[objectiveId],
+      createdAt: Timestamp.now()
+    });
+    setCommentText({ ...commentText, [objectiveId]: "" });
+    fetchObjectives();
+  };
+
+  // Eliminar comentario (admin puede eliminar cualquiera)
+  const handleDeleteComment = async (objectiveId, comment) => {
+    await deleteComment(objectiveId, comment);
+    fetchObjectives();
   };
 
   return (
@@ -399,6 +430,70 @@ const Admin = () => {
                         ))}
                       </ul>
                     </div>
+                    {/* Bloque de comentarios */}
+                    <div style={{ marginTop: 16, background: "#f0f4f8", borderRadius: 8, padding: 12 }}>
+                      <strong>Comentarios:</strong>
+                      <ul style={{ paddingLeft: 18 }}>
+                        {(obj.comments || []).map((c, idx) => (
+                          <li key={idx} style={{ marginBottom: 4, display: "flex", alignItems: "center" }}>
+                            <span style={{ fontWeight: 600 }}>{c.user}:</span> {c.text}
+                            <span style={{ color: "#888", fontSize: 12, marginLeft: 8 }}>
+                              {c.createdAt?.toDate?.().toLocaleString?.() || ""}
+                            </span>
+                            <button
+                              onClick={() => handleDeleteComment(obj.id, c)}
+                              style={{
+                                marginLeft: 8,
+                                color: "#e53935",
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                fontWeight: "bold"
+                              }}
+                              title="Eliminar comentario"
+                            >
+                              Eliminar
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                      <form
+                        onSubmit={e => {
+                          e.preventDefault();
+                          handleAddComment(obj.id);
+                        }}
+                        style={{ display: "flex", gap: 8, marginTop: 8 }}
+                      >
+                        <input
+                          type="text"
+                          placeholder="Añade un comentario..."
+                          value={commentText[obj.id] || ""}
+                          onChange={e => setCommentText({ ...commentText, [obj.id]: e.target.value })}
+                          style={{
+                            flex: 1,
+                            padding: "8px 12px",
+                            borderRadius: 6,
+                            border: "1px solid #bbb",
+                            fontSize: 15,
+                          }}
+                        />
+                        <button
+                          type="submit"
+                          style={{
+                            background: "#1976d2",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 6,
+                            padding: "8px 16px",
+                            fontWeight: "bold",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Comentar
+                        </button>
+                      </form>
+                    </div>
+                    {/* Fin bloque de comentarios */}
                     <div style={{ display: "flex", gap: 8 }}>
                       <button
                         onClick={() => handleEditObjective(obj)}
