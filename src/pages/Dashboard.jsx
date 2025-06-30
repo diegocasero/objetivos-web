@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import { useObjectives } from "../hooks/useObjectives";
+import { Timestamp } from "firebase/firestore";
 import ProgressChart from "../components/ProgressChart";
 import ObjectivesDonutChart from "../components/ObjectivesDonutChart";
 import LogoutButton from "../components/LogoutButton";
@@ -21,10 +22,11 @@ const Dashboard = () => {
   const [editingText, setEditingText] = useState("");
   const [editingMilestones, setEditingMilestones] = useState([]);
   const [widgets, setWidgets] = useState(["progress", "objectives", "chart"]);
-  const [error, setError] = useState(""); // Nuevo estado para el error
+  const [error, setError] = useState("");
+  const [commentText, setCommentText] = useState({});
   const navigate = useNavigate();
 
-  const { objectives, fetchObjectives, addObjective, updateObjective, deleteObjective } = useObjectives(auth.currentUser?.uid);
+  const { objectives, fetchObjectives, addObjective, updateObjective, deleteObjective, addComment } = useObjectives(auth.currentUser?.uid);
 
   useEffect(() => {
     if (!auth.currentUser) {
@@ -124,6 +126,19 @@ const Dashboard = () => {
     setEditingId(null);
     setEditingText("");
     setEditingMilestones([]);
+    setEditError("");
+  };
+
+  // Añadir comentario a un objetivo
+  const handleAddComment = async (objectiveId) => {
+    if (!commentText[objectiveId] || !commentText[objectiveId].trim()) return;
+    await addComment(objectiveId, {
+      user: auth.currentUser.email,
+      text: commentText[objectiveId],
+      createdAt: Timestamp.now()
+    });
+    setCommentText({ ...commentText, [objectiveId]: "" });
+    fetchObjectives();
   };
 
   return (
@@ -341,6 +356,56 @@ const Dashboard = () => {
                         ))}
                       </ul>
                     </div>
+                    {/* Comentarios */}
+                    <div style={{ marginTop: 16, background: "#f0f4f8", borderRadius: 8, padding: 12 }}>
+                      <strong>Comentarios:</strong>
+                      <ul style={{ paddingLeft: 18 }}>
+                        {(obj.comments || []).map((c, idx) => (
+                          <li key={idx} style={{ marginBottom: 4 }}>
+                            <span style={{ fontWeight: 600 }}>{c.user}:</span> {c.text}
+                            <span style={{ color: "#888", fontSize: 12, marginLeft: 8 }}>
+                              {c.createdAt?.toDate?.().toLocaleString?.() || ""}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      <form
+                        onSubmit={e => {
+                          e.preventDefault();
+                          handleAddComment(obj.id);
+                        }}
+                        style={{ display: "flex", gap: 8, marginTop: 8 }}
+                      >
+                        <input
+                          type="text"
+                          placeholder="Añade un comentario..."
+                          value={commentText[obj.id] || ""}
+                          onChange={e => setCommentText({ ...commentText, [obj.id]: e.target.value })}
+                          style={{
+                            flex: 1,
+                            padding: "8px 12px",
+                            borderRadius: 6,
+                            border: "1px solid #bbb",
+                            fontSize: 15,
+                          }}
+                        />
+                        <button
+                          type="submit"
+                          style={{
+                            background: "#1976d2",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 6,
+                            padding: "8px 16px",
+                            fontWeight: "bold",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Comentar
+                        </button>
+                      </form>
+                    </div>
+                    {/* Fin comentarios */}
                     <div style={{ display: "flex", gap: 8 }}>
                       <button
                         onClick={() => handleEditObjective(obj)}

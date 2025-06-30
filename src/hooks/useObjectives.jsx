@@ -18,7 +18,10 @@ export function useObjectives(uid = null) {
   }, [uid]);
 
   const addObjective = async (data) => {
-    await addDoc(collection(db, "objectives"), data);
+    await addDoc(collection(db, "objectives"), {
+      ...data,
+      comments: [] // <-- añade esto
+    });
     fetchObjectives();
   };
 
@@ -32,6 +35,13 @@ export function useObjectives(uid = null) {
     fetchObjectives();
   };
 
+  const addComment = async (objectiveId, comment) => {
+    const ref = doc(db, "objectives", objectiveId);
+    await updateDoc(ref, {
+      comments: arrayUnion(comment)
+    });
+  };
+
   return {
     objectives,
     fetchObjectives,
@@ -39,5 +49,6 @@ export function useObjectives(uid = null) {
     updateObjective,
     deleteObjective,
     setObjectives,
+    addComment
   };
 }
