@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { db } from "../firebase";
-import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, arrayUnion } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove } from "firebase/firestore";
 
 export function useObjectives(uid = null) {
   const [objectives, setObjectives] = useState([]);
@@ -42,6 +42,13 @@ export function useObjectives(uid = null) {
     });
   };
 
+  const deleteComment = async (objectiveId, comment) => {
+    const ref = doc(db, "objectives", objectiveId);
+    await updateDoc(ref, {
+      comments: arrayRemove(comment)
+    });
+  };
+
   return {
     objectives,
     fetchObjectives,
@@ -49,6 +56,7 @@ export function useObjectives(uid = null) {
     updateObjective,
     deleteObjective,
     setObjectives,
-    addComment
+    addComment,
+    deleteComment
   };
 }

@@ -26,7 +26,7 @@ const Dashboard = () => {
   const [commentText, setCommentText] = useState({});
   const navigate = useNavigate();
 
-  const { objectives, fetchObjectives, addObjective, updateObjective, deleteObjective, addComment } = useObjectives(auth.currentUser?.uid);
+  const { objectives, fetchObjectives, addObjective, updateObjective, deleteObjective, addComment, deleteComment } = useObjectives(auth.currentUser?.uid);
 
   useEffect(() => {
     if (!auth.currentUser) {
@@ -137,6 +137,12 @@ const Dashboard = () => {
       createdAt: Timestamp.now()
     });
     setCommentText({ ...commentText, [objectiveId]: "" });
+    fetchObjectives();
+  };
+
+  // Eliminar comentario propio
+  const handleDeleteComment = async (objectiveId, comment) => {
+    await deleteComment(objectiveId, comment);
     fetchObjectives();
   };
 
@@ -360,13 +366,29 @@ const Dashboard = () => {
                       <strong>Comentarios:</strong>
                       <ul style={{ paddingLeft: 18 }}>
                         {(obj.comments || []).map((c, idx) => (
-                          <li key={idx} style={{ marginBottom: 4 }}>
-                            <span style={{ fontWeight: 600 }}>{c.user}:</span> {c.text}
-                            <span style={{ color: "#888", fontSize: 12, marginLeft: 8 }}>
-                              {c.createdAt?.toDate?.().toLocaleString?.() || ""}
-                            </span>
-                          </li>
-                        ))}
+                        <li key={idx} style={{ marginBottom: 4, display: "flex", alignItems: "center" }}>
+                          <span style={{ fontWeight: 600 }}>{c.user}:</span> {c.text}
+                          <span style={{ color: "#888", fontSize: 12, marginLeft: 8 }}>
+                            {c.createdAt?.toDate?.().toLocaleString?.() || ""}
+                          </span>
+                          {c.user === auth.currentUser.email && (
+                            <button
+                              onClick={() => handleDeleteComment(obj.id, c)}
+                              style={{
+                                marginLeft: 8,
+                                color: "#e53935",
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                fontWeight: "bold"
+                              }}
+                              title="Eliminar comentario"
+                            >
+                              Eliminar
+                            </button>
+                          )}
+                        </li>
+                      ))}
                       </ul>
                       <form
                         onSubmit={e => {
