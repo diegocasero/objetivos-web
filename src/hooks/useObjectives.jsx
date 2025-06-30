@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { db } from "../firebase";
-import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, arrayUnion } from "firebase/firestore";
 
 export function useObjectives(uid = null) {
   const [objectives, setObjectives] = useState([]);
