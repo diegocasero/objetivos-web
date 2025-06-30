@@ -21,6 +21,7 @@ const Dashboard = () => {
   const [editingText, setEditingText] = useState("");
   const [editingMilestones, setEditingMilestones] = useState([]);
   const [widgets, setWidgets] = useState(["progress", "objectives", "chart"]);
+  const [error, setError] = useState(""); // Nuevo estado para el error
   const navigate = useNavigate();
 
   const { objectives, fetchObjectives, addObjective, updateObjective, deleteObjective } = useObjectives(auth.currentUser?.uid);
@@ -37,7 +38,12 @@ const Dashboard = () => {
   // Añadir objetivo con hitos
   const handleAddObjective = async (e) => {
     e.preventDefault();
+    setError("");
     if (!newObjective.trim()) return;
+    if (milestones.length === 0) {
+      setError("Debes añadir al menos un hito.");
+      return;
+    }
     await addObjective({
       uid: auth.currentUser.uid,
       text: newObjective,
@@ -204,6 +210,9 @@ const Dashboard = () => {
                   </li>
                 ))}
               </ul>
+              {error && (
+                <div style={{ color: "#e53935", fontWeight: "bold" }}>{error}</div>
+              )}
               <button
                 type="submit"
                 style={{

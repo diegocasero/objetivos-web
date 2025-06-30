@@ -58,6 +58,10 @@ const Admin = () => {
       setError("No se encontró ningún usuario con ese correo.");
       return;
     }
+    if (milestones.length === 0) {
+      setError("Debes añadir al menos un hito.");
+      return;
+    }
     await addObjective({
       uid,
       text: newObjective,
