@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { db } from "../firebase";
-import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, Timestamp } from "firebase/firestore";
 
 export function useObjectives(uid = null) {
   const [objectives, setObjectives] = useState([]);
@@ -20,7 +20,8 @@ export function useObjectives(uid = null) {
   const addObjective = async (data) => {
     await addDoc(collection(db, "objectives"), {
       ...data,
-      comments: [] // <-- añade esto
+      comments: [],
+      createdAt: Timestamp.now()
     });
     fetchObjectives();
   };

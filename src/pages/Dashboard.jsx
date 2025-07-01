@@ -15,11 +15,13 @@ const getProgress = (milestones) =>
     : 0;
 
 const getTimeProgress = (createdAt, deadline) => {
-  if (!deadline || !createdAt) return null;
+  if (!deadline) return null;
   
   const now = new Date();
-  const created = createdAt.toDate();
   const due = deadline.toDate();
+  
+  // Si no hay createdAt, usamos la fecha actual como referencia
+  const created = createdAt ? createdAt.toDate() : new Date(due.getTime() - (30 * 24 * 60 * 60 * 1000)); // 30 días atrás por defecto
   
   const total = due - created;
   const elapsed = now - created;
@@ -36,7 +38,7 @@ const getTimeProgress = (createdAt, deadline) => {
 
 const formatDate = (timestamp) => {
   if (!timestamp) return "";
-  return timestamp.toDate().toLocaleDateString();
+  return timestamp.toDate().toLocaleDateString('es-ES');
 };
 
 const Dashboard = () => {
@@ -196,6 +198,12 @@ const Dashboard = () => {
 
   return (
     <>
+      <style>{`
+        @keyframes blink {
+          0%, 50% { opacity: 1; }
+          51%, 100% { opacity: 0.5; }
+        }
+      `}</style>
       {/* Botón fijo arriba a la derecha, fuera del cuadrado */}
       <div style={{
         position: "fixed",
@@ -415,24 +423,150 @@ const Dashboard = () => {
                     <div style={{ fontWeight: 700, fontSize: 17 }}>{obj.text}</div>
                     <div style={{ color: "#1976d2", fontWeight: 600 }}>{getProgress(obj.milestones).toFixed(0)}% completado</div>
                     
-                    {/* Información de fecha límite y progreso de tiempo */}
+                    {/* Información de fecha límite y progreso de tiempo*/}
                     {obj.deadline && (
-                      <div style={{ fontSize: 14, color: "#666" }}>
-                        <strong>Fecha límite:</strong> {formatDate(obj.deadline)}
+                      <div style={{ 
+                        fontSize: 14, 
+                        color: "#666",
+                        background: (() => {
+                          const timeInfo = getTimeProgress(obj.createdAt, obj.deadline);
+                          if (!timeInfo) return "transparent";
+                          if (timeInfo.isOverdue) return "#ffebee"; // Fondo rojo claro
+                          if (timeInfo.daysLeft <= 1) return "#fff3e0"; // Fondo naranja claro
+                          if (timeInfo.daysLeft <= 3) return "#fff8e1"; // Fondo amarillo claro
+                          return "transparent";
+                        })(),
+                        padding: 8,
+                        borderRadius: 6,
+                        border: (() => {
+                          const timeInfo = getTimeProgress(obj.createdAt, obj.deadline);
+                          if (!timeInfo) return "none";
+                          if (timeInfo.isOverdue) return "2px solid #e53935"; // Borde rojo
+                          if (timeInfo.daysLeft <= 1) return "2px solid #ff9800"; // Borde naranja
+                          if (timeInfo.daysLeft <= 3) return "2px solid #ffc107"; // Borde amarillo
+                          return "1px solid #e0e0e0";
+                        })()
+                      }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <strong>📅 Fecha límite:</strong> {formatDate(obj.deadline)}
+                          {(() => {
+                            const timeInfo = getTimeProgress(obj.createdAt, obj.deadline);
+                            if (timeInfo) {
+                              if (timeInfo.isOverdue) {
+                                return (
+                                  <span style={{ 
+                                    color: "#e53935", 
+                                    fontWeight: "bold",
+                                    background: "#ffcdd2",
+                                    padding: "2px 8px",
+                                    borderRadius: 12,
+                                    fontSize: 12
+                                  }}>
+                                    🚨 VENCIDO hace {Math.abs(timeInfo.daysLeft)} día{Math.abs(timeInfo.daysLeft) !== 1 ? 's' : ''}
+                                  </span>
+                                );
+                              } else if (timeInfo.daysLeft === 0) {
+                                return (
+                                  <span style={{ 
+                                    color: "#e53935", 
+                                    fontWeight: "bold",
+                                    background: "#ffcdd2",
+                                    padding: "2px 8px",
+                                    borderRadius: 12,
+                                    fontSize: 12,
+                                    animation: "blink 1s infinite"
+                                  }}>
+                                    🔥 ¡HOY VENCE!
+                                  </span>
+                                );
+                              } else if (timeInfo.daysLeft === 1) {
+                                return (
+                                  <span style={{ 
+                                    color: "#ff6f00", 
+                                    fontWeight: "bold",
+                                    background: "#ffe0cc",
+                                    padding: "2px 8px",
+                                    borderRadius: 12,
+                                    fontSize: 12
+                                  }}>
+                                    ⚡ Vence MAÑANA
+                                  </span>
+                                );
+                              } else if (timeInfo.daysLeft <= 3) {
+                                return (
+                                  <span style={{ 
+                                    color: "#f57c00", 
+                                    fontWeight: "bold",
+                                    background: "#fff3e0",
+                                    padding: "2px 8px",
+                                    borderRadius: 12,
+                                    fontSize: 12
+                                  }}>
+                                    ⚠️ {timeInfo.daysLeft} días restantes
+                                  </span>
+                                );
+                              } else if (timeInfo.daysLeft <= 7) {
+                                return (
+                                  <span style={{ 
+                                    color: "#f9a825", 
+                                    fontWeight: "600",
+                                    padding: "2px 8px",
+                                    borderRadius: 12,
+                                    fontSize: 12
+                                  }}>
+                                    📍 {timeInfo.daysLeft} días restantes
+                                  </span>
+                                );
+                              } else {
+                                return (
+                                  <span style={{ 
+                                    color: "#43a047", 
+                                    fontWeight: "600",
+                                    padding: "2px 8px",
+                                    borderRadius: 12,
+                                    fontSize: 12
+                                  }}>
+                                    ✅ {timeInfo.daysLeft} días restantes
+                                  </span>
+                                );
+                              }
+                            }
+                            return null;
+                          })()}
+                        </div>
+                        
+                        {/* Barra de progreso de tiempo */}
                         {(() => {
                           const timeInfo = getTimeProgress(obj.createdAt, obj.deadline);
                           if (timeInfo) {
                             return (
-                              <div style={{ marginTop: 4 }}>
-                                {timeInfo.isOverdue ? (
-                                  <span style={{ color: "#e53935", fontWeight: "bold" }}>
-                                    ⚠️ Vencido hace {Math.abs(timeInfo.daysLeft)} días
-                                  </span>
-                                ) : (
-                                  <span style={{ color: timeInfo.daysLeft <= 3 ? "#e53935" : "#43a047" }}>
-                                    📅 {timeInfo.daysLeft} días restantes
-                                  </span>
-                                )}
+                              <div style={{ marginTop: 6 }}>
+                                <div style={{ 
+                                  fontSize: 12, 
+                                  color: "#888", 
+                                  marginBottom: 2,
+                                  display: "flex",
+                                  justifyContent: "space-between"
+                                }}>
+                                  <span>Progreso de tiempo</span>
+                                  <span>{timeInfo.progress.toFixed(0)}%</span>
+                                </div>
+                                <div style={{ 
+                                  background: "#f0f0f0", 
+                                  borderRadius: 4, 
+                                  height: 4, 
+                                  width: "100%" 
+                                }}>
+                                  <div style={{
+                                    width: `${Math.min(100, timeInfo.progress)}%`,
+                                    background: timeInfo.isOverdue ? "#e53935" : 
+                                              timeInfo.daysLeft <= 1 ? "#ff9800" :
+                                              timeInfo.daysLeft <= 3 ? "#ffc107" : "#43a047",
+                                    height: "100%",
+                                    borderRadius: 4,
+                                    transition: "width 0.3s"
+                                  }} />
+                                </div>
                               </div>
                             );
                           }
