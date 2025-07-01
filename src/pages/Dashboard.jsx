@@ -423,8 +423,8 @@ const Dashboard = () => {
                     <div style={{ fontWeight: 700, fontSize: 17 }}>{obj.text}</div>
                     <div style={{ color: "#1976d2", fontWeight: 600 }}>{getProgress(obj.milestones).toFixed(0)}% completado</div>
                     
-                    {/* Información de fecha límite y progreso de tiempo*/}
-                    {obj.deadline && (
+                    {/* Información de fecha límite y progreso de tiempo - SOLO SI NO ESTÁ COMPLETADO */}
+                    {obj.deadline && getProgress(obj.milestones) < 100 && (
                       <div style={{ 
                         fontSize: 14, 
                         color: "#666",
@@ -572,6 +572,32 @@ const Dashboard = () => {
                           }
                           return null;
                         })()}
+                      </div>
+                    )}
+
+                    {/* Mostrar fecha límite sin indicadores si está completado */}
+                    {obj.deadline && getProgress(obj.milestones) >= 100 && (
+                      <div style={{ 
+                        fontSize: 14, 
+                        color: "#666",
+                        padding: 8,
+                        borderRadius: 6,
+                        background: "#e8f5e8",
+                        border: "1px solid #43a047"
+                      }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <strong>📅 Fecha límite:</strong> {formatDate(obj.deadline)}
+                          <span style={{ 
+                            color: "#43a047", 
+                            fontWeight: "bold",
+                            background: "#c8e6c9",
+                            padding: "2px 8px",
+                            borderRadius: 12,
+                            fontSize: 12
+                          }}>
+                            🎉 ¡COMPLETADO!
+                          </span>
+                        </div>
                       </div>
                     )}
                     
