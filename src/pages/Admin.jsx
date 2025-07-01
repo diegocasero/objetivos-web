@@ -26,13 +26,22 @@ const getTimeProgress = (createdAt, deadline) => {
   const total = due - created;
   const elapsed = now - created;
   
-  if (total <= 0) return { progress: 100, daysLeft: Math.ceil((due - now) / (1000 * 60 * 60 * 24)), isOverdue: now > due };
+  // Calcular días de forma más precisa
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dueDate = new Date(due);
+  dueDate.setHours(0, 0, 0, 0);
+  
+  const daysLeft = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+  const isOverdue = dueDate < today;
+  
+  if (total <= 0) return { progress: 100, daysLeft, isOverdue };
   const progress = Math.min(100, Math.max(0, (elapsed / total) * 100));
   
   return {
     progress: progress,
-    daysLeft: Math.ceil((due - now) / (1000 * 60 * 60 * 24)),
-    isOverdue: now > due
+    daysLeft: daysLeft,
+    isOverdue: isOverdue
   };
 };
 
