@@ -1,5 +1,6 @@
 // functions/index.js - Versión completa con todas las funciones
 const { onRequest } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const { defineString } = require('firebase-functions/params');
@@ -19,21 +20,19 @@ const transporter = nodemailer.createTransport({
 });
 
 // Función principal: Verificar fechas límite de objetivos
-exports.checkDeadlines = onRequest(async (req, res) => {
-  console.log('🔍 Iniciando verificación de fechas límite...');
+exports.dailyCheck = onSchedule('0 9 * * *', async (event) => {
+  console.log('Ejecutando verificación automática diaria...');
   
   const db = getFirestore();
   const now = new Date();
   now.setHours(0, 0, 0, 0);
   
   try {
-    // Obtener todos los objetivos y usuarios
     const [objectivesSnapshot, usersSnapshot] = await Promise.all([
       db.collection('objectives').get(),
       db.collection('users').get()
     ]);
     
-    // Crear mapa de usuarios (uid -> email)
     const usersMap = {};
     usersSnapshot.forEach(doc => {
       usersMap[doc.id] = doc.data().email;
@@ -42,32 +41,26 @@ exports.checkDeadlines = onRequest(async (req, res) => {
     let emailsSent = 0;
     let results = [];
     
-    // Revisar cada objetivo
     for (const doc of objectivesSnapshot.docs) {
       const obj = doc.data();
       const userEmail = usersMap[obj.uid];
       
-      // Saltar si no tiene deadline o email
       if (!obj.deadline || !userEmail) continue;
       
-      // Calcular progreso
       let progress = 0;
       if (obj.milestones && obj.milestones.length > 0) {
         const completed = obj.milestones.filter(m => m.completed).length;
         progress = (completed / obj.milestones.length) * 100;
       }
       
-      // Si ya está completado, no enviar notificaciones
       if (progress >= 100) continue;
       
-      // Calcular días restantes
       const deadline = new Date(obj.deadline.toDate());
       deadline.setHours(0, 0, 0, 0);
       const daysLeft = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
       
       let emailType = null;
       
-      // Enviar emails según días restantes
       if (daysLeft === 0) {
         await sendNotificationEmail(userEmail, 'urgente', obj, progress, daysLeft);
         emailType = 'urgente - vence HOY';
@@ -81,9 +74,8 @@ exports.checkDeadlines = onRequest(async (req, res) => {
         emailType = 'recordatorio - quedan 3 días';
         emailsSent++;
       } else if (daysLeft < 0) {
-        // Para objetivos vencidos, enviar recordatorio semanal
         const daysSinceOverdue = Math.abs(daysLeft);
-        if (daysSinceOverdue % 7 === 0) { // Cada 7 días
+        if (daysSinceOverdue % 7 === 0) {
           await sendNotificationEmail(userEmail, 'vencido', obj, progress, daysLeft);
           emailType = `vencido - hace ${daysSinceOverdue} días`;
           emailsSent++;
@@ -100,25 +92,22 @@ exports.checkDeadlines = onRequest(async (req, res) => {
     }
     
     console.log(`✅ Verificación completada. Emails enviados: ${emailsSent}`);
-    res.json({ 
-      success: true, 
+    return {
+      success: true,
       emailsSent: emailsSent,
       objetivosRevisados: results.length,
       detalles: results,
-      timestamp: new Date().toISOString()
-    });
+      timestamp: new Date().toISOString(),
+      trigger: 'automatic'
+    };
     
   } catch (error) {
-    console.error('❌ Error en verificación:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
+    console.error('❌ Error:', error);
+    throw error;
   }
 });
 
-// Simular completar objetivo (para testing)
+// Enviar email al completar objetivo
 exports.simulateComplete = onRequest(async (req, res) => {
   const email = req.query.email || gmailEmail.value();
   const objetivo = req.query.objetivo || 'Completar mi TFG';
@@ -291,7 +280,7 @@ async function sendNotificationEmail(email, tipo, objetivo, progress, daysLeft) 
   }
   
   const mailOptions = {
-    from: `"ConquistaLogros App" <${gmailEmail.value()}>`,
+    from: `"ConquistaLogros" <${gmailEmail.value()}>`,
     to: email,
     subject: subject,
     html: html
@@ -301,10 +290,10 @@ async function sendNotificationEmail(email, tipo, objetivo, progress, daysLeft) 
   console.log(`✅ Email enviado a ${email}: ${tipo} - ${info.messageId}`);
 }
 
-// Mantener funciones de testing
+// Funciones de testing
 exports.helloWorld = onRequest(async (req, res) => {
   res.json({ 
-    message: '🚀 Sistema Imparable funcionando perfectamente',
+    message: '🚀 ConquistaLogros funcionando perfectamente',
     timestamp: new Date().toISOString(),
     version: '2.0'
   });
