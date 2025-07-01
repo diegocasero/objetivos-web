@@ -14,15 +14,43 @@ const getProgress = (milestones) =>
     ? (milestones.filter(m => m.completed).length / milestones.length) * 100
     : 0;
 
+const getTimeProgress = (createdAt, deadline) => {
+  if (!deadline || !createdAt) return null;
+  
+  const now = new Date();
+  const created = createdAt.toDate();
+  const due = deadline.toDate();
+  
+  const total = due - created;
+  const elapsed = now - created;
+  
+  if (total <= 0) return { progress: 100, daysLeft: 0, isOverdue: true };
+  const progress = Math.min(100, Math.max(0, (elapsed / total) * 100));
+  
+  return {
+    progress: progress,
+    daysLeft: Math.ceil((due - now) / (1000 * 60 * 60 * 24)),
+    isOverdue: now > due
+  };
+};
+
+const formatDate = (timestamp) => {
+  if (!timestamp) return "";
+  return timestamp.toDate().toLocaleDateString();
+};
+
 const Dashboard = () => {
   const [newObjective, setNewObjective] = useState("");
+  const [newObjectiveDeadline, setNewObjectiveDeadline] = useState("");
   const [newMilestone, setNewMilestone] = useState("");
   const [milestones, setMilestones] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editingText, setEditingText] = useState("");
+  const [editingDeadline, setEditingDeadline] = useState("");
   const [editingMilestones, setEditingMilestones] = useState([]);
   const [widgets, setWidgets] = useState(["progress", "objectives", "chart"]);
   const [error, setError] = useState("");
+  const [editError, setEditError] = useState("");
   const [commentText, setCommentText] = useState({});
   const navigate = useNavigate();
 
@@ -46,12 +74,17 @@ const Dashboard = () => {
       setError("Debes añadir al menos un hito.");
       return;
     }
+    
+    const deadline = newObjectiveDeadline ? Timestamp.fromDate(new Date(newObjectiveDeadline)) : null;
+    
     await addObjective({
       uid: auth.currentUser.uid,
       text: newObjective,
       milestones: milestones.map(title => ({ title, completed: false })),
+      deadline: deadline,
     });
     setNewObjective("");
+    setNewObjectiveDeadline("");
     setMilestones([]);
   };
 
@@ -79,18 +112,30 @@ const Dashboard = () => {
     setEditingId(obj.id);
     setEditingText(obj.text);
     setEditingMilestones(obj.milestones ? [...obj.milestones] : []);
+    setEditingDeadline(obj.deadline ? obj.deadline.toDate().toISOString().split('T')[0] : "");
+    setEditError("");
   };
 
   // Guardar edición de objetivo
   const handleUpdateObjective = async (e) => {
     e.preventDefault();
+    setEditError("");
+    if (editingMilestones.length === 0) {
+      setEditError("Debes añadir al menos un hito.");
+      return;
+    }
+    
+    const deadline = editingDeadline ? Timestamp.fromDate(new Date(editingDeadline)) : null;
+    
     await updateObjective(editingId, {
       text: editingText,
       milestones: editingMilestones,
+      deadline: deadline,
     });
     setEditingId(null);
     setEditingText("");
     setEditingMilestones([]);
+    setEditingDeadline("");
   };
 
   // Añadir hito en edición
@@ -118,6 +163,7 @@ const Dashboard = () => {
     await updateObjective(obj.id, {
       text: obj.text,
       milestones: updatedMilestones,
+      deadline: obj.deadline,
     });
   };
 
@@ -126,6 +172,8 @@ const Dashboard = () => {
     setEditingId(null);
     setEditingText("");
     setEditingMilestones([]);
+    setEditingDeadline("");
+    setEditError("");
   };
 
   // Añadir comentario a un objetivo
@@ -190,6 +238,20 @@ const Dashboard = () => {
                   background: "#f7fafd",
                   width: "100%",
                 }}
+              />
+              <input
+                type="date"
+                value={newObjectiveDeadline}
+                onChange={(e) => setNewObjectiveDeadline(e.target.value)}
+                style={{
+                  padding: "12px 16px",
+                  borderRadius: 8,
+                  border: "1px solid #cfd8dc",
+                  fontSize: 16,
+                  background: "#f7fafd",
+                  width: "100%",
+                }}
+                placeholder="Fecha límite (opcional)"
               />
               <div style={{ display: "flex", gap: 8 }}>
                 <input
@@ -270,6 +332,18 @@ const Dashboard = () => {
                           fontSize: 15,
                         }}
                       />
+                      <input
+                        type="date"
+                        value={editingDeadline}
+                        onChange={(e) => setEditingDeadline(e.target.value)}
+                        style={{
+                          padding: "10px 14px",
+                          borderRadius: 6,
+                          border: "1px solid #bbb",
+                          fontSize: 15,
+                        }}
+                        placeholder="Fecha límite (opcional)"
+                      />
                       <div>
                         <strong>Hitos:</strong>
                         <ul style={{ paddingLeft: 18, margin: 0 }}>
@@ -292,6 +366,9 @@ const Dashboard = () => {
                         </ul>
                         <button type="button" onClick={handleAddEditMilestone} style={{ background: "#43a047", color: "#fff", border: "none", borderRadius: 4, padding: "4px 10px", fontWeight: "bold", cursor: "pointer", marginTop: 6 }}>Añadir hito</button>
                       </div>
+                      {editError && (
+                        <div style={{ color: "#e53935", fontWeight: "bold" }}>{editError}</div>
+                      )}
                       <div style={{ display: "flex", gap: 8 }}>
                         <button
                           type="submit"
@@ -337,6 +414,33 @@ const Dashboard = () => {
                   }}>
                     <div style={{ fontWeight: 700, fontSize: 17 }}>{obj.text}</div>
                     <div style={{ color: "#1976d2", fontWeight: 600 }}>{getProgress(obj.milestones).toFixed(0)}% completado</div>
+                    
+                    {/* Información de fecha límite y progreso de tiempo */}
+                    {obj.deadline && (
+                      <div style={{ fontSize: 14, color: "#666" }}>
+                        <strong>Fecha límite:</strong> {formatDate(obj.deadline)}
+                        {(() => {
+                          const timeInfo = getTimeProgress(obj.createdAt, obj.deadline);
+                          if (timeInfo) {
+                            return (
+                              <div style={{ marginTop: 4 }}>
+                                {timeInfo.isOverdue ? (
+                                  <span style={{ color: "#e53935", fontWeight: "bold" }}>
+                                    ⚠️ Vencido hace {Math.abs(timeInfo.daysLeft)} días
+                                  </span>
+                                ) : (
+                                  <span style={{ color: timeInfo.daysLeft <= 3 ? "#e53935" : "#43a047" }}>
+                                    📅 {timeInfo.daysLeft} días restantes
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
+                    )}
+                    
                     <div style={{ background: "#e3eafc", borderRadius: 4, height: 8, width: "100%" }}>
                       <div style={{
                         width: `${getProgress(obj.milestones)}%`,
