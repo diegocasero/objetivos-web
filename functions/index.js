@@ -108,7 +108,7 @@ exports.dailyCheck = onSchedule('0 9 * * *', async (event) => {
 });
 
 // Enviar email al completar objetivo
-exports.simulateComplete = onRequest(async (req, res) => {
+exports.completationEmail = onRequest(async (req, res) => {
   const email = req.query.email || gmailEmail.value();
   const objetivo = req.query.objetivo || 'Completar mi TFG';
   

@@ -52,6 +52,20 @@ const formatDate = (timestamp) => {
   return timestamp.toDate().toLocaleDateString('es-ES');
 };
 
+const sendCompletionEmail = async (objectiveText) => {
+  try {
+    const response = await fetch(
+      `https://us-central1-objetivos-779ed.cloudfunctions.net/completationEmail?objetivo=${encodeURIComponent(objectiveText)}&email=${encodeURIComponent(auth.currentUser.email)}`
+    );
+    const result = await response.json();
+    console.log('🎉 Email de felicitación enviado:', result);
+    return result;
+  } catch (error) {
+    console.error('Error enviando email de felicitación:', error);
+  }
+};
+
+
 const Dashboard = () => {
   const [newObjective, setNewObjective] = useState("");
   const [newObjectiveDeadline, setNewObjectiveDeadline] = useState("");
@@ -173,11 +187,19 @@ const Dashboard = () => {
     const updatedMilestones = obj.milestones.map((m, i) =>
       i === milestoneIdx ? { ...m, completed: !m.completed } : m
     );
+
+    const wasCompleted = getProgress(obj.milestones) >= 100;
+    const willBeCompleted = getProgress(updatedMilestones) >= 100;
+
     await updateObjective(obj.id, {
       text: obj.text,
       milestones: updatedMilestones,
       deadline: obj.deadline,
     });
+
+    if (!wasCompleted && willBeCompleted) {
+      await sendCompletionEmail(obj.text);
+    }
   };
 
   // Cancelar edición
