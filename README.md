@@ -1,10 +1,9 @@
-Para ejecutarlo en local:
+# Para ejecutarlo en local:
 
 npm run dev
 
 
-Despliegue completo (desde cero):
-
+# Despliegue completo (desde cero):
 
 1. Construir aplicación:
 
@@ -32,12 +31,12 @@ firebase open hosting:site
 
 
 
-Redesplegar SOLO functions:
+# Redesplegar SOLO functions:
 
 firebase deploy --only functions
 
 
 
-Redesplegar SOLO frontend:
+# Redesplegar SOLO frontend:
 
 npm run build && firebase deploy --only hosting
