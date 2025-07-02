@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { auth } from "../firebase";
 import MainContainer from "../components/MainContainer";
 
@@ -9,21 +9,58 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showResendButton, setShowResendButton] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setShowResendButton(false);
     setLoading(true);
+    
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      // VERIFICAR SI EL EMAIL ESTÁ CONFIRMADO
+      if (!user.emailVerified) {
+        setError(`📧 Debes verificar tu email antes de continuar.
+
+Revisa tu bandeja de entrada y haz clic en el enlace de verificación.
+
+¿No recibiste el email?`);
+        setShowResendButton(true);
+        await auth.signOut(); // Cerrar sesión
+        setLoading(false);
+        return;
+      }
+      
+      // Si está verificado, continuar normal
       if (email === "admin@objectives.com") {
         navigate("/admin");
       } else {
         navigate("/dashboard");
       }
+      
     } catch (err) {
       setError("Credenciales incorrectas.");
+    }
+    setLoading(false);
+  };
+
+  // Función para reenviar verificación
+  const handleResendVerification = async () => {
+    try {
+      setLoading(true);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      await sendEmailVerification(userCredential.user);
+      await auth.signOut();
+      setError(`📧 Email de verificación reenviado a: ${email}
+
+Revisa tu bandeja de entrada y carpeta de spam.`);
+      setShowResendButton(false);
+    } catch (err) {
+      setError("Error reenviando verificación. Verifica tus credenciales.");
     }
     setLoading(false);
   };
@@ -91,6 +128,7 @@ const Login = () => {
         }}>
           Iniciar Sesión
         </h2>
+        
         <input
           type="email"
           placeholder="Correo electrónico"
@@ -106,6 +144,7 @@ const Login = () => {
           }}
           required
         />
+        
         <input
           type="password"
           placeholder="Contraseña"
@@ -121,9 +160,49 @@ const Login = () => {
           }}
           required
         />
+        
+        {/* MENSAJE DE ERROR MEJORADO */}
         {error && (
-          <div style={{ color: "#e53935", textAlign: "center", fontWeight: "bold" }}>{error}</div>
+          <div style={{ 
+            color: "#e53935", 
+            textAlign: "center", 
+            fontWeight: "bold",
+            whiteSpace: "pre-line",
+            background: "#ffebee",
+            padding: 12,
+            borderRadius: 8,
+            border: "1px solid #ffcdd2",
+            fontSize: 14,
+            lineHeight: 1.5
+          }}>
+            {error}
+          </div>
         )}
+
+        {/* BOTÓN PARA REENVIAR VERIFICACIÓN */}
+        {showResendButton && (
+          <button
+            type="button"
+            onClick={handleResendVerification}
+            disabled={loading}
+            style={{
+              background: "#ff9800",
+              color: "#fff",
+              border: "none",
+              borderRadius: 6,
+              padding: "10px 16px",
+              fontSize: 14,
+              fontWeight: "bold",
+              cursor: loading ? "not-allowed" : "pointer",
+              opacity: loading ? 0.7 : 1,
+              transition: "all 0.3s ease",
+              boxShadow: "0 2px 8px rgba(255, 152, 0, 0.3)"
+            }}
+          >
+            {loading ? "📧 Enviando..." : "📧 Reenviar Verificación"}
+          </button>
+        )}
+        
         <button
           type="submit"
           disabled={loading}
@@ -158,6 +237,7 @@ const Login = () => {
         >
           {loading ? "🔄 Entrando..." : "🚀 Entrar"}
         </button>
+        
         <button
           type="button"
           onClick={() => navigate("/register")}
@@ -179,7 +259,7 @@ const Login = () => {
         </button>
       </form>
 
-      {/* Añadir CSS de animación */}
+      {/* CSS de animación */}
       <style jsx>{`
         @keyframes fadeInDown {
           from {
