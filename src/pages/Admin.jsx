@@ -79,7 +79,7 @@ const Admin = () => {
   } = useObjectives();
 
   useEffect(() => {
-    if (!auth.currentUser || auth.currentUser.email !== "admin@objectives.com") {
+    if (!auth.currentUser || auth.currentUser.email !== "conquistalogros@gmail.com") {
       navigate("/login");
       return;
     }

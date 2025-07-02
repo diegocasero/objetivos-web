@@ -29,7 +29,7 @@ function App() {
     <Routes>
       <Route
         path="/login"
-        element={!user ? <Login /> : <Navigate to={user.email === "admin@objectives.com" ? "/admin" : "/dashboard"} />}
+        element={!user ? <Login /> : <Navigate to={user.email === "conquistalogros@gmail.com" ? "/admin" : "/dashboard"} />}
       />
       <Route
         path="/register"
@@ -41,11 +41,11 @@ function App() {
       />
       <Route
         path="/admin"
-        element={user && user.email === "admin@objectives.com" ? <Admin /> : <Navigate to="/login" />}
+        element={user && user.email === "conquistalogros@gmail.com" ? <Admin /> : <Navigate to="/login" />}
       />
       <Route
         path="*"
-        element={<Navigate to={user ? (user.email === "admin@objectives.com" ? "/admin" : "/dashboard") : "/login"} />}
+        element={<Navigate to={user ? (user.email === "conquistalogros@gmail.com" ? "/admin" : "/dashboard") : "/login"} />}
       />
     </Routes>
   );
