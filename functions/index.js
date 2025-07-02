@@ -20,7 +20,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Función principal: Verificar fechas límite de objetivos
-exports.dailyCheck = onSchedule('0 9 * * *', async (event) => {
+exports.dailyCheck = onSchedule('0 9 * * *', async (event) => { // Todos los días a las 9:00 AM UTC
   console.log('Ejecutando verificación automática diaria...');
   
   const db = getFirestore();
