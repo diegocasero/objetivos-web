@@ -2,7 +2,7 @@
 
 Una aplicación web para gestionar objetivos personales y alcanzar tus metas de forma organizada y motivadora.
 
-## 🎯 Descripción
+## Descripción
 
 ConquistaLogros es una plataforma que te permite:
 - **Crear y gestionar objetivos** personales
@@ -10,7 +10,7 @@ ConquistaLogros es una plataforma que te permite:
 - **Organizar tareas** relacionadas con tus metas
 - **Acceso administrativo** para gestión avanzada
 
-## 🚀 Características
+## Características
 
 - ✅ **Autenticación segura** con Firebase Auth
 - ✅ **Verificación de email** obligatoria
@@ -20,7 +20,7 @@ ConquistaLogros es una plataforma que te permite:
 - ✅ **Base de datos en tiempo real** con Firebase
 - ✅ **Despliegue automático** en Firebase Hosting
 
-## 🛠️ Tecnologías
+## Tecnologías
 
 - **Frontend**: React.js + Vite
 - **Backend**: Firebase Functions
@@ -29,14 +29,14 @@ ConquistaLogros es una plataforma que te permite:
 - **Hosting**: Firebase Hosting
 - **Estilos**: CSS-in-JS (styled components inline)
 
-## 📋 Requisitos
+## Requisitos
 
 - Node.js (v16 o superior)
 - npm o yarn
 - Firebase CLI
 - Cuenta de Firebase
 
-## 🔧 Instalación
+## Instalación
 
 1. **Clonar el repositorio:**
 ```bash
@@ -63,7 +63,7 @@ firebase login
 firebase init
 ```
 
-## 🚀 Desarrollo Local
+## Desarrollo Local
 
 ```bash
 # Iniciar servidor de desarrollo
@@ -72,7 +72,7 @@ npm run dev
 # La aplicación estará disponible en http://localhost:5173
 ```
 
-## 🔥 Despliegue
+## Despliegue
 
 ### Despliegue completo (desde cero):
 
@@ -113,7 +113,7 @@ firebase deploy --only functions
 npm run build && firebase deploy --only hosting
 ```
 
-## 👥 Usuarios
+## Usuarios
 
 ### Usuario Regular
 - Acceso al dashboard personal
@@ -126,14 +126,7 @@ npm run build && firebase deploy --only hosting
 - Gestión completa de usuarios y objetivos
 - Estadísticas globales
 
-## 🔒 Seguridad
-
-- **Verificación de email obligatoria** antes del acceso
-- **Autenticación Firebase** con tokens seguros
-- **Validación de roles** en frontend y backend
-- **Reglas de seguridad** en Firestore
-
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 src/
@@ -155,24 +148,7 @@ src/
 └── firebase.js        # Configuración Firebase
 ```
 
-## 🐛 Solución de Problemas
-
-### Error de verificación de email
-- Revisar bandeja de entrada y spam
-- Usar el botón "Reenviar Verificación"
-- Verificar configuración de Firebase Auth
-
-### Error de despliegue
-- Verificar que Firebase CLI esté actualizado
-- Comprobar permisos del proyecto Firebase
-- Revisar logs con `firebase logs`
-
-### Error de desarrollo local
-- Verificar que el puerto 5173 esté libre
-- Reinstalar dependencias: `rm -rf node_modules && npm install`
-- Verificar configuración de Firebase
-
-## 📝 Scripts Disponibles
+## Scripts Disponibles
 
 ```bash
 npm run dev          # Servidor de desarrollo
@@ -180,15 +156,20 @@ npm run build        # Construir para producción
 npm run preview      # Vista previa del build
 ```
 
-## 🎓 Contexto Académico
+## Contexto Académico
 
-Este proyecto fue desarrollado como Trabajo Final de Grado, demostrando:
-- Desarrollo full-stack con tecnologías modernas
-- Implementación de sistemas de autenticación seguros
-- Diseño de interfaces de usuario responsivas
-- Integración con servicios en la nube (Firebase)
-- Arquitectura de componentes escalable
+Este proyecto fue desarrollado como Trabajo Final de Grado, demostrando competencias en:
+
+- **Desarrollo full-stack** con tecnologías modernas de JavaScript
+- **Implementación de sistemas de autenticación** seguros y escalables
+- **Diseño de interfaces de usuario** responsivas y accesibles
+- **Integración con servicios en la nube** (Firebase)
+- **Arquitectura de componentes** escalable y mantenible
+- **Gestión de estado** y hooks personalizados en React
 
 ---
 
-**¡Alcanza tus objetivos, conquista tus sueños! 🎯**
+**Alumno**: Diego Casero Ramón
+**Universidad**: Universidad Politécnica de Madrid
+**Grado**: Ingeniería del Software
+**Curso**: 2024-2025
