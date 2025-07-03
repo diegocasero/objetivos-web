@@ -99,8 +99,8 @@ firebase deploy --only hosting
 
 4. **Verificar que funcione:**
 ```bash
-# Abrir la aplicación en el navegador
-firebase open hosting:site
+# Listar los sitios de hosting
+firebase hosting:sites:list
 ```
 
 ### Redespliegues rápidos:
@@ -191,4 +191,4 @@ Este proyecto fue desarrollado como Trabajo Final de Grado, demostrando:
 
 ---
 
-**¡Alcanza tus objetivos, conquista
+**¡Alcanza tus objetivos, conquista tus sueños! 🎯**
