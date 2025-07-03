@@ -35,13 +35,6 @@ Revisa tu bandeja de entrada y haz clic en el enlace de verificación.
         return;
       }
       
-      // Si está verificado, continuar normal
-      if (email === "conquistalogros@gmail.com") {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
-      }
-      
     } catch (err) {
       setError("Credenciales incorrectas.");
     }

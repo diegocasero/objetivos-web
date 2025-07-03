@@ -12,7 +12,12 @@ function App() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser || null);
+      // Si hay usuario pero no tiene email verificado, tratarlo como no autenticado
+      if (firebaseUser && !firebaseUser.emailVerified) {
+        setUser(null);
+      } else {
+        setUser(firebaseUser || null);
+      }
     });
     return () => unsubscribe();
   }, []);
