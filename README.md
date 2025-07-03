@@ -12,13 +12,13 @@ ConquistaLogros es una plataforma que te permite:
 
 ## Características
 
-- ✅ **Autenticación segura** con Firebase Auth
-- ✅ **Verificación de email** obligatoria
-- ✅ **Dashboard personalizado** para cada usuario
-- ✅ **Panel de administración** para gestión avanzada
-- ✅ **Interfaz responsive** y moderna
-- ✅ **Base de datos en tiempo real** con Firebase
-- ✅ **Despliegue automático** en Firebase Hosting
+- **Autenticación segura** con Firebase Auth
+- **Verificación de email** obligatoria
+- **Dashboard personalizado** para cada usuario
+- **Panel de administración** para gestión avanzada
+- **Interfaz responsive** y moderna
+- **Base de datos en tiempo real** con Firebase
+- **Despliegue automático** en Firebase Hosting
 
 ## Tecnologías
 
