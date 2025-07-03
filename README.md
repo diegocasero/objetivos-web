@@ -170,6 +170,9 @@ Este proyecto fue desarrollado como Trabajo Final de Grado, demostrando competen
 ---
 
 **Alumno**: Diego Casero Ramón
+
 **Universidad**: Universidad Politécnica de Madrid
+
 **Grado**: Ingeniería del Software
+
 **Curso**: 2024-2025
