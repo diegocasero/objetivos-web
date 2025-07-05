@@ -192,7 +192,7 @@ Revisa tu bandeja de entrada y carpeta de spam.`);
               boxShadow: "0 2px 8px rgba(255, 152, 0, 0.3)"
             }}
           >
-            {loading ? "📧 Enviando..." : "📧 Reenviar Verificación"}
+            {loading ? "Enviando..." : "Reenviar Verificación"}
           </button>
         )}
         
@@ -228,7 +228,7 @@ Revisa tu bandeja de entrada y carpeta de spam.`);
             }
           }}
         >
-          {loading ? "🔄 Entrando..." : "🚀 Entrar"}
+          {loading ? "Entrando..." : "Entrar"}
         </button>
         
         <button

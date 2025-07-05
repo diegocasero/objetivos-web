@@ -228,7 +228,7 @@ const Register = () => {
             boxShadow: "0 4px 12px rgba(25, 118, 210, 0.3)",
           }}
         >
-          {loading ? "🔄 Registrando..." : "📝 Crear Cuenta"}
+          {loading ? "Registrando..." : "Crear Cuenta"}
         </button>
         
         <button
